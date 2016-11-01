@@ -1,0 +1,11 @@
+class heisamppa {
+
+        package {'gimp':,
+        ensure => 'installed',
+        allowcdrom => 'true',
+        }
+
+        file { '/tmp/heimaailma':
+        content => "Hei maailma!\n",
+        }
+}
