@@ -1,0 +1,112 @@
+#harjoitus tehty kahdella koneella kotona, toisessa linux live-usb Xubuntu 16.04, toinen Hp Mini-5103 jossa myös Xubuntu 16.04.
+Harjoituksessa oli tarkoitus säätää orjia/orjaa verkon yli puppetmasterin avulla.
+
+#vaihdoin suomenkielisen näppäimistön live-usb-koneeseen
+  setxkbmap fi
+
+#päivitin pakettivarastot molemmissa
+  sudo apt-get update
+
+#Asetin molemmille koneille omat host-nimet
+  sudo hostnamectl set-hostname master
+  sudo hostnamectl set-hostname slave
+
+#polussa /etc/hosts sijaitsevaan tiedostoon piti myös lisätä hostnamet
+  sudoedit /etc/hosts
+  127.0.0.1 localhost
+  127.0.1.1 xubuntu master
+
+#ja sama slave-koneella
+  sudoedit /etc/hosts
+  127.0.0.1 localhost
+  127.0.1.1 ******-**-****-**** slave
+
+#kokeilin pingata masteria
+  ping -c 1 master.local
+
+#ping toimi
+
+#käynnistin avahi-palvelun uusiksi kummallakin koneella
+  sudo service avahi-daemon restart
+
+#sitten piti asentaa puppetmaster "master"koneelle ja puppet "orja"koneelle
+  sudo apt-get -y install puppetmaster
+  sudo apt-get -y install puppet
+
+#seuraavaksi herrakoneella pysäytin puppetmaster-palvelun ja poistin vanhan sertifikaatin
+  sudo service puppetmaster stop
+  sudo rm -r /var/lib/puppet/ssl
+
+#muokataan puppet.conf-tiedostoa herrakoneella lisäämällä [master]-tagin alle dns_alt_names
+  sudoedit /etc/puppet/puppet.conf
+  dns_alt_names = master.local
+
+# käynnistin vielä puppetmaster-palvelun jolloin sertifikaatti automaattisesti luodaan
+
+#sitten muokkasin orjan puppet.conf-tiedostoa
+
+  sudoedit /etc/puppet/puppet.conf
+
+#lisäsin sinne seuraavat rivit
+  [agent]
+  server = master.local
+
+#"sallitaan" orjan käynnistyminen
+  sudoedit /etc/default/puppet
+
+#lisätään seuraava rivi
+  START=yes
+
+#pysäytetään puppet-palvelu ja poistetaan vanha sertifikaatti
+  sudo service puppet stop
+  sudo rm -r /var/lib/puppet/ssl
+  
+#käynnistetään puppet-palvelu uudelleen
+  sudo service puppet restart
+  
+#allekirjoitetaan orjan sertifikaatti herralla
+  sudo puppet cert --list
+  sudo puppet cert --sign slave.home
+
+#Tehdään site manifest ja moduuli herralla
+  cd /etc/puppet
+  sudo mkdir -p manifests/ modules/helloworld/manifests/
+  sudoedit manifests/site.pp
+
+# lisätään yksi rivi
+  class {helloworld:}
+
+#tehdään helloworld-moduuli
+  
+ class helloworld {
+        file { ' /tmp/hellofromHere':
+                content => "Hello from Master!\n"
+        }
+}
+
+#laitetaan moduuli toimimaan herralla
+  sudo puppet apply -e 'class {helloworld:}'
+  
+#katsotaan toimiiko moduuli
+  cat /tmp/hellofromHere
+
+#moduuli toimi
+
+#käynnistetään orjakoneella puppet palvelu uusiksi
+  sudo service puppet restart
+
+#kokeillaan näkyykö tiedosto orjalla
+  cat /tmp/hellofromHere
+  
+#Toimii!
+
+Lähteet&kirjallisuutta: 
+http://terokarvinen.com/2016/aikataulu-linuxin-keskitetty-hallinta-ict4tn011-10-loppusyksy-2016
+http://terokarvinen.com/2012/puppetmaster-on-ubuntu-12-04
+https://akijuvonen.wordpress.com/
+
+
+
+
+  
+  
