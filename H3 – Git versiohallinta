@@ -1,0 +1,88 @@
+h3. Tee tavallisia työpöydän asetuksia puppet moduleiksi. Laita ne versionhallintaan. Konfiguroi tyhjä kone, vaikkapa juuri bootattu live-USB, lataamalla puppet-asetukset versionhallinnasta.
+
+harjoitusympäristö
+
+xubuntu 16.04 amd64 HP mini 5103 & linux live usb
+
+aloitus
+
+sudo apt-get update
+
+Tein modulin joka asensi vlc:n
+
+En halunnut, että moduuli olisi monimutkainen sillä harjoituksen tarkoitus oli nimenomaan hakea moduli versionhallinnasta ja ladata se sieltä tyhjälle koneelle.
+
+Aloitin luomalla luovlc-kansion /etc/puppet/modules alle. Sinne loin myös manifests ja templates kansiot.
+
+Loin myös /etc/puppet/manifests alle site.pp tiedoston.
+
+    cd /etc/puppet/manifests
+
+    sudoedit site.pp
+
+Seuraavaksi loin init.pp tiedoston. Loin sen /etc/puppet/modules/luovlc/manifests alle.
+
+    sudoedit init.pp
+
+Ajoin modulin komennolla sudo puppet apply -v -d -e 'class {luovlc:]'
+
+Hyvin onnistui.
+
+Git:in asennus ja alkumäärittelyt
+
+    sudo apt-get -y install git
+
+    git config --global user.email a1402981@myy.haaga-helia.fi
+
+    git config --global user.name Samppa Kangas
+
+Kävin luomassa github.com sivulla uuden repositoryn. Nimesin sen harjoitus3:ksi.
+
+Tämän jälkeen kloonasin repositoryn kotihakemistooni.
+
+    git clone https://github.com/a1402981/harjoitus3.git
+
+Kun kloonaus oli valmis, kopioin puppet kansion sisällön tuonne juuri luotuun hakemistoon.
+
+    cp -r /etc/puppet/ /home/samppa/harjoitus3/
+
+Seuraavaksi siirrän tehdyt muutokset githubin repositoryyn.
+
+    git add .
+
+Jonka jälkeen komento:
+
+    git commit
+
+jossa kerrotaan lyhyesti mitä muutoksia tehtiin.
+
+Sitten vielä:
+
+    git pull
+
+    git push
+
+Git pull komento ilmoitti ”already up to date”. git pushin jälkeen kysyttiin githubin tunnuksia. Ilmoitin ne. Tämän jälkeen git laittoi muutokset githubiin. Kävin vielä katsomassa githubista muutokset ja siellä ne olivat.
+
+Tyhjän koneen konfigurointi
+
+    setxkbmap fi
+
+    sudo apt-get update
+
+    sudo apt-get -y install git
+
+    sudo apt-get -y install puppet
+
+    git clone https://github.com/a1402981/harjoitus3.git
+
+    sudo cp -r harjoitus3/puppet/ /etc/
+
+Modulin ajo meni läpi. Onnistuin siis konfiguroimaan tyhjän koneen ainakin tällä yksinkertaisella puppet-modulilla.
+
+
+Lähteet & kirjallisuutta:
+
+http://terokarvinen.com/2016/aikataulu-linuxin-keskitetty-hallinta-ict4tn011-10-loppusyksy-2016#comment-21968
+
+https://akijuvonen.wordpress.com/2016/11/15/h3-git-versiohallinta/
